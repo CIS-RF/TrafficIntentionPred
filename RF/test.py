@@ -1,3 +1,5 @@
+from cgi import print_arguments
+from typing import Dict
 import numpy as np
 
 from rf import RandomForest
@@ -24,25 +26,28 @@ def test():
     pass
 
 
-def test_for_rf():
+def test_for_rf(config:Dict):
 
     data_arr = np.loadtxt(data_path)
     label_arr = np.loadtxt(label_path)
 
-    rf = RandomForest()
+    rf = RandomForest(**config)
     rf.set_dataset(data_arr,label_arr)
     rf.fit()
-    rf.score()
-
+    return rf.score()
 
 
 
 if __name__ == '__main__':
     
+    rf_config = {
+        'n_estimators' : 12,
+        'criterion' : "gini",
+        'max_depth' : 6,
+        'min_samples_split' : 30,
+        'min_samples_leaf' :30,
+    }
     
-    #test()
-
-    test_for_rf()
-
-    
+    score = test_for_rf(rf_config)
+    print(score)
     pass

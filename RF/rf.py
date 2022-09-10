@@ -2,7 +2,6 @@
 This file contains the main code of naive random forest
 """
 
-
 from enum import Enum
 from typing import Dict
 from sklearn.ensemble import RandomForestClassifier
@@ -62,7 +61,7 @@ class RandomForest():
     def predict_class_prob(self,x:np.ndarray):
         return self._classifier.predict_proba(x)
     
-    def predict_class_prob_lof(self,x:np.ndarray):
+    def predict_class_prob_log(self,x:np.ndarray):
         return self._classifier.predict_log_proba(x)
 
     def reset_classifier(self,cfg:Dict):
