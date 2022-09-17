@@ -1,10 +1,9 @@
 
 import pickle
 
-saved_path = r"E:\1-suyang\CIS\proj\RF\saved.txt"
+from rf import res_saved_path,model_saved_path
 
-with open(saved_path,mode='rb') as f:
-    cv_result,best_param,best_score,test_report = pickle.load(f)
-    import ipdb
-    ipdb.set_trace()
-    #print(test_report)
+with open(res_saved_path,mode='rb') as f:
+    res = pickle.load(f)
+    
+    print(res['test_report'])

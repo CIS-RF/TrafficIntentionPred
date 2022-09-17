@@ -6,11 +6,13 @@ from enum import Enum
 from typing import Dict
 from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
 #from sklearn.externals import joblib
+import logging
 import pickle
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
 import pandas as pd
 import numpy as np
+
 
 
 class StateEnum(Enum):
@@ -20,23 +22,34 @@ class StateEnum(Enum):
 classifier_mapper = {'gbdt':GradientBoostingClassifier,'rf':RandomForestClassifier}
 
 model_saved_path = r"E:\1-suyang\CIS\proj\RF\saved_model.txt"
+res_saved_path = r"E:\1-suyang\CIS\proj\RF\saved_report.txt"
+
+def config_logger():
+    logger = logging.getLogger(__name__) 
+    logger.setLevel(logging.DEBUG)   
+    logger.info("Logger built.")
+    return logger
+
 
 class RandomForest():
 
-    def __init__(self,classifier_type=None, train_ratio = 0.7,use_param_grid:bool=True ,parameters:Dict=None) -> None:
+    def __init__(self,if_load=False,classifier_type=None, train_ratio = 0.7,use_param_grid:bool=True ,parameters:Dict=None) -> None:
         
-        assert classifier_type in classifier_mapper.keys(), 'classifier_type must be gbdt or rf !'
-        
-        ClassifierType = classifier_mapper[classifier_type]
-        
-        if use_param_grid:
-            self._classifier = ClassifierType()
-            self._grid_searcher = GridSearchCV(self._classifier,param_grid=parameters)
-        else:
-            self._classifier = ClassifierType(**parameters)
+        self.logger = config_logger()
+        if not if_load:
+            assert classifier_type in classifier_mapper.keys(), 'classifier_type must be gbdt or rf !'
+            ClassifierType = classifier_mapper[classifier_type]
+            if use_param_grid:
+                self._classifier = ClassifierType()
+                self._grid_searcher = GridSearchCV(self._classifier,param_grid=parameters)
+            else:
+                self._classifier = ClassifierType(**parameters)
 
-        self._use_param_grid = use_param_grid
-        self._state = StateEnum.Inited
+            self._use_param_grid = use_param_grid
+            self._state = StateEnum.Inited
+        else:
+            self.load()
+            
         self.train_ratio = train_ratio
         self._train_data = None
         self._test_data = None
@@ -72,6 +85,8 @@ class RandomForest():
         return train_data,train_label,test_data,test_label
 
     def fit(self):
+        if self._state == StateEnum.Fitted:
+            self.logger.info(" Refitting model.")
         if not self._use_param_grid:
             self._classifier.fit(self._train_data,self._train_label)
         else:
@@ -89,7 +104,10 @@ class RandomForest():
             best_score = self._grid_searcher.best_score_
             test_pred = self._grid_searcher.predict(self._test_data)
             test_report = classification_report(y_true=self._test_label,y_pred=test_pred)
-            return {"cv_result":cv_result,"best_param":best_param,"best_score":best_score,"test_report":test_report}
+            report_dict = {"cv_result":cv_result,"best_param":best_param,"best_score":best_score,"test_report":test_report}
+            with open(res_saved_path,mode='wb') as f:
+                pickle.dump(report_dict,f)
+            return report_dict
 
 
     def predict_class(self,x:np.ndarray):
@@ -111,7 +129,7 @@ class RandomForest():
     
 
     def load(self):
-
+        self.logger.info("Loading model from file, but without dataset.")
         with open(model_saved_path,mode='rb') as f:
             saved_dict = pickle.load(f)
             self._state = saved_dict['state']
@@ -122,6 +140,7 @@ class RandomForest():
     
 
     def save(self):
+        self.logger.info("Saving model to file, but without dataset.")
         saved_dict = {'classifier':self._classifier,'state':self._state}
         if self._use_param_grid:
             saved_dict['grid_searcher'] = self._grid_searcher

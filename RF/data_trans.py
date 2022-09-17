@@ -42,11 +42,10 @@ from sklearn.preprocessing import ( scale,
 # #print(type(label_arr),' ',label_arr.shape)
 
 new_data_path = r"E:\1-suyang\CIS\proj\RF\df_new.csv"
-
 file_path = r"E:\1-suyang\CIS\proj\RF\df_1m.csv"
-
 df = pd.read_csv(file_path)
-#print(df.columns)
+
+
 
 
 # if __name__ == '__main__':

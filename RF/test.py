@@ -6,10 +6,8 @@ from rf import RandomForest
 import pickle
 
 data_path = r"E:\1-suyang\CIS\proj\RF\data.txt"
-
 label_path = r"E:\1-suyang\CIS\proj\RF\label.txt"
 
-saved_path = r"E:\1-suyang\CIS\proj\RF\saved.txt"
 
 def test():
 
@@ -25,7 +23,6 @@ def test():
     label = test_arr[:200,:-1]
     print(label.shape)
 
-    
     pass
 
 
@@ -35,8 +32,9 @@ def test_for_rf(total_config:Dict):
     label_arr = np.loadtxt(label_path)
 
     rf = RandomForest(**total_config)
+
     rf.set_dataset(data_arr,label_arr)
-    rf.fit()
+    #rf.fit() #if load=True and just want to simply test, this step can be omitted.
     res = rf.score()
     rf.save()
     return res
@@ -64,15 +62,16 @@ if __name__ == '__main__':
 
     use_grids = True
     clsfer_type = 'gbdt'
+    if_load = True
 
     total_cfg = {
         'parameters': gbdt_config,
         'use_param_grid':  use_grids,
-        'classifier_type':  clsfer_type
+        'classifier_type':  clsfer_type,
+        'if_load':if_load
     }
     
     score = test_for_rf(total_cfg)
     print(score)
-    with open(saved_path,mode='wb') as f:
-        pickle.dump(score,f)
+    
     pass
