@@ -34,7 +34,7 @@ def test_for_rf(total_config:Dict):
     rf = RandomForest(**total_config)
 
     rf.set_dataset(data_arr,label_arr)
-    #rf.fit() #if load=True and just want to simply test, this step can be omitted.
+    rf.fit() #if load=True and just want to simply test, this step can be omitted.
     res = rf.score()
     rf.save()
     return res
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     use_grids = True
     clsfer_type = 'gbdt'
-    if_load = True
+    if_load = False
 
     total_cfg = {
         'parameters': gbdt_config,

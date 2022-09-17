@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Dict
 from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
 #from sklearn.externals import joblib
+import time
 import logging
 import pickle
 from sklearn.model_selection import GridSearchCV
@@ -13,16 +14,17 @@ from sklearn.metrics import classification_report
 import pandas as pd
 import numpy as np
 
-
-
 class StateEnum(Enum):
     Inited = 0
     Fitted = 1
 
 classifier_mapper = {'gbdt':GradientBoostingClassifier,'rf':RandomForestClassifier}
 
-model_saved_path = r"E:\1-suyang\CIS\proj\RF\saved_model.txt"
-res_saved_path = r"E:\1-suyang\CIS\proj\RF\saved_report.txt"
+model_saved_path = "E:\\1-suyang\\CIS\proj\\RF\\saved\\model\\"
+res_saved_path = "E:\\1-suyang\\CIS\\proj\\RF\\saved\\report\\"
+
+file_format = ".txt"
+
 
 def config_logger():
     logger = logging.getLogger(__name__) 
@@ -49,7 +51,7 @@ class RandomForest():
             self._state = StateEnum.Inited
         else:
             self.load()
-            
+
         self.train_ratio = train_ratio
         self._train_data = None
         self._test_data = None
@@ -105,7 +107,15 @@ class RandomForest():
             test_pred = self._grid_searcher.predict(self._test_data)
             test_report = classification_report(y_true=self._test_label,y_pred=test_pred)
             report_dict = {"cv_result":cv_result,"best_param":best_param,"best_score":best_score,"test_report":test_report}
-            with open(res_saved_path,mode='wb') as f:
+            
+            time_stamp = time.strftime("%Y%m%d%H%M%S",time.localtime())
+
+            res_file_name = str(type(self._grid_searcher)) + \
+                            '-'+str(type(self._classifier))+ \
+                            '-'+time_stamp + \
+                            file_format
+
+            with open(res_saved_path+res_file_name,mode='wb') as f:
                 pickle.dump(report_dict,f)
             return report_dict
 
@@ -144,6 +154,19 @@ class RandomForest():
         saved_dict = {'classifier':self._classifier,'state':self._state}
         if self._use_param_grid:
             saved_dict['grid_searcher'] = self._grid_searcher
-        with open(model_saved_path,mode='wb') as f:
+            res_file_name = str(type(self._grid_searcher)) + \
+                        '-'+str(type(self._classifier))+ \
+                        '-'+time_stamp + \
+                        file_format
+        else:
+            res_file_name = str(type(self._classifier))+ \
+                        '-'+time_stamp + \
+                        file_format
+
+        time_stamp = time.strftime("%Y%m%d%H%M%S",time.localtime())
+
+        
+        
+        with open(model_saved_path+res_file_name,mode='wb') as f:
             pickle.dump(saved_dict,f)
 
