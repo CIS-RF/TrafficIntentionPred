@@ -41,8 +41,16 @@ from sklearn.preprocessing import ( scale,
 # np.savetxt(data_path,merged_arr)
 # #print(type(label_arr),' ',label_arr.shape)
 
-if __name__ == '__main__':
+new_data_path = r"E:\1-suyang\CIS\proj\RF\df_new.csv"
+
+file_path = r"E:\1-suyang\CIS\proj\RF\df_1m.csv"
+
+df = pd.read_csv(file_path)
+#print(df.columns)
+
+
+# if __name__ == '__main__':
 
     
     
-    pass
+#     pass
