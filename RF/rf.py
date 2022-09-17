@@ -35,10 +35,10 @@ def config_logger():
 
 class RandomForest():
 
-    def __init__(self,if_load=False,classifier_type=None, train_ratio = 0.7,use_param_grid:bool=True ,parameters:Dict=None) -> None:
+    def __init__(self,load_file:str=None,classifier_type=None, train_ratio = 0.7,use_param_grid:bool=True ,parameters:Dict=None) -> None:
         
         self.logger = config_logger()
-        if not if_load:
+        if load_file is None:
             assert classifier_type in classifier_mapper.keys(), 'classifier_type must be gbdt or rf !'
             ClassifierType = classifier_mapper[classifier_type]
             if use_param_grid:
@@ -50,7 +50,7 @@ class RandomForest():
             self._use_param_grid = use_param_grid
             self._state = StateEnum.Inited
         else:
-            self.load()
+            self.load(file_name=load_file)
 
         self.train_ratio = train_ratio
         self._train_data = None
@@ -90,10 +90,24 @@ class RandomForest():
         if self._state == StateEnum.Fitted:
             self.logger.info(" Refitting model.")
         if not self._use_param_grid:
+            # import ipdb
+            # ipdb.set_trace()
             self._classifier.fit(self._train_data,self._train_label)
         else:
             self._grid_searcher.fit(self._train_data,self._train_label)
         self._state = StateEnum.Fitted
+
+    def get_file_name(self,given_dir_path:str):
+        clsfir_name = self._classifier.__class__.__name__
+        searcher_name = ""
+        if self._use_param_grid:
+            searcher_name = self._grid_searcher.__class__.__name__
+        
+        time_stamp = time.strftime("%Y%m%d%H%M%S",time.localtime())
+        # import ipdb
+        # ipdb.set_trace()
+        return given_dir_path +searcher_name+'-'+clsfir_name+'-'+time_stamp+file_format
+        
 
     def score(self):
         assert self._state is StateEnum.Fitted, " the classifier has not been fitted! call meth: fit() first!"
@@ -108,14 +122,9 @@ class RandomForest():
             test_report = classification_report(y_true=self._test_label,y_pred=test_pred)
             report_dict = {"cv_result":cv_result,"best_param":best_param,"best_score":best_score,"test_report":test_report}
             
-            time_stamp = time.strftime("%Y%m%d%H%M%S",time.localtime())
+            abs_saved_path = self.get_file_name(res_saved_path)
 
-            res_file_name = str(type(self._grid_searcher)) + \
-                            '-'+str(type(self._classifier))+ \
-                            '-'+time_stamp + \
-                            file_format
-
-            with open(res_saved_path+res_file_name,mode='wb') as f:
+            with open(abs_saved_path,mode='wb') as f:
                 pickle.dump(report_dict,f)
             return report_dict
 
@@ -138,35 +147,24 @@ class RandomForest():
         self._state = StateEnum.Inited
     
 
-    def load(self):
+    def load(self,file_name:str):
         self.logger.info("Loading model from file, but without dataset.")
-        with open(model_saved_path,mode='rb') as f:
+        with open(model_saved_path+file_name,mode='rb') as f:
             saved_dict = pickle.load(f)
             self._state = saved_dict['state']
             self._classifier = saved_dict['classifier']
             if 'grid_searcher' in saved_dict.keys():
                 self._use_param_grid = True
                 self._grid_searcher = saved_dict['grid_searcher']
+            else:
+                self._use_param_grid = False
     
 
     def save(self):
         self.logger.info("Saving model to file, but without dataset.")
         saved_dict = {'classifier':self._classifier,'state':self._state}
-        if self._use_param_grid:
-            saved_dict['grid_searcher'] = self._grid_searcher
-            res_file_name = str(type(self._grid_searcher)) + \
-                        '-'+str(type(self._classifier))+ \
-                        '-'+time_stamp + \
-                        file_format
-        else:
-            res_file_name = str(type(self._classifier))+ \
-                        '-'+time_stamp + \
-                        file_format
-
-        time_stamp = time.strftime("%Y%m%d%H%M%S",time.localtime())
-
-        
-        
-        with open(model_saved_path+res_file_name,mode='wb') as f:
+       
+        abs_saved_path = self.get_file_name(model_saved_path)
+        with open(abs_saved_path,mode='wb') as f:
             pickle.dump(saved_dict,f)
 

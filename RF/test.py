@@ -5,8 +5,8 @@ import numpy as np
 from rf import RandomForest
 import pickle
 
-data_path = r"E:\1-suyang\CIS\proj\RF\data.txt"
-label_path = r"E:\1-suyang\CIS\proj\RF\label.txt"
+data_path = r"E:\1-suyang\CIS\proj\RF\data\data.txt"
+label_path = r"E:\1-suyang\CIS\proj\RF\data\label.txt"
 
 
 def test():
@@ -32,7 +32,6 @@ def test_for_rf(total_config:Dict):
     label_arr = np.loadtxt(label_path)
 
     rf = RandomForest(**total_config)
-
     rf.set_dataset(data_arr,label_arr)
     rf.fit() #if load=True and just want to simply test, this step can be omitted.
     res = rf.score()
@@ -42,6 +41,15 @@ def test_for_rf(total_config:Dict):
 
 
 if __name__ == '__main__':
+
+    base_config = {
+        'n_estimators' : 20,
+        #'criterion' : ["gini", "entropy", "log_loss"],
+        'criterion' : "gini",
+        'max_depth' : 8,
+        'min_samples_split' : 15,
+        'min_samples_leaf' : 15,
+    }
     
     rf_config = {
         'n_estimators' : range(20,120,10),
@@ -62,13 +70,13 @@ if __name__ == '__main__':
 
     use_grids = True
     clsfer_type = 'gbdt'
-    if_load = False
+    load_file = None
 
     total_cfg = {
         'parameters': gbdt_config,
         'use_param_grid':  use_grids,
         'classifier_type':  clsfer_type,
-        'if_load':if_load
+        'load_file':load_file
     }
     
     score = test_for_rf(total_cfg)
